@@ -22,17 +22,21 @@ inputs = {
 "select": 0.0,
 "start": 0.0
 }
+highestinput = ""
+
+screenhistory = []
 
 def printscreen():
-	global screenprinted
+	global screenprinted, name, screenhistory
 	screenstring = ''
 	for i in range(pyboy.screen.ndarray.shape[0]):
 		for j in range(pyboy.screen.ndarray.shape[1]):
 			screenstring += '\033[48;2;' + str(pyboy.screen.ndarray[i,j,0]) + ';' +  str(pyboy.screen.ndarray[i,j,1]) + ';' +  str(pyboy.screen.ndarray[i,j,2]) + 'm '
+			x = 1
 		screenstring += '\033[0m\n'
 
 	screenstring += 'Game: ' + pyboy.cartridge_title + '\n'
-	screenstring += 'Name: ' + name + '\n'
+	screenstring += 'Screens: ' + str(len(screenhistory)) + '\n'
 	screenstring += 'Up: ' + str(inputs["up"]) + '\n'
 	screenstring += 'Down: ' + str(inputs ["down"] ) + '\n'
 	screenstring += 'Left: ' + str(inputs["left"]) + '\n'
@@ -53,10 +57,12 @@ def printscreen():
 
 def memory_sweep():
 	global name
-	name = ''.join(str(x) for x in pyboy.memory[0xA598:0xA5A2])
+	name = ''.join(str(x) for x in pyboy.memory[0xD47D:0xD486])
+	new_screen()
 
 
 def generate_inputs():
+	global highestinput
 	inputs.update( {
 		"up": random.uniform(0,1),
 		"down": random.uniform(0,1),
@@ -67,27 +73,25 @@ def generate_inputs():
 		"select": random.uniform(0,1),
 		"start": random.uniform(0,1)
 	} )
+	highestinput = max(inputs, key = inputs.get)
+
+def new_screen():
+	global screenhistory, pyboy
+	screen = pyboy.screen.ndarray #[66:80, 64:72, 0]
+	new = 1
+	for i in screenhistory:
+		#if numpy.array_equal(screen, i):
+		if numpy.average(numpy.subtract(i, screen)) < 5:
+			#print(numpy.average(numpy.subtract(i, screen)))
+			new = 0
+	if new == 1:
+		screenhistory.append(numpy.copy(screen))
 
 
-for _ in range(10):
+for _ in range(500):
 	generate_inputs()
-	if inputs["up"] > 0.7:
-		pyboy.button('up')
-	if inputs["down"] > 0.7:
-		pyboy.button("down")
-	if inputs["left"] > 0.7:
-		pyboy.button("left")
-	if inputs["right"] > 0.7:
-		pyboy.button("right")
-	if inputs["a"] > 0.7:
-		pyboy.button('a')
-	if inputs["b"] > 0.7:
-		pyboy.button('b')
-	if inputs["start"] > 0.7:
-		pyboy.button('start')
-	if inputs["select"] > 0.7:
-		pyboy.button("select")
-	pyboy.tick(60)
+	pyboy.button(highestinput, 3)
+	pyboy.tick(50)
 	memory_sweep()
 	printscreen()
 pyboy.stop()
