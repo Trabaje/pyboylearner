@@ -9,7 +9,11 @@ numpy.set_printoptions(threshold=sys.maxsize)
 pyboy = PyBoy('files/rom.gb')
 pyboy.set_emulation_speed(0)
 
+accumulate = 10
+
+
 screenprinted = 0
+oldscore = 0
 
 name = [' ']
 inputs = {
@@ -25,6 +29,11 @@ inputs = {
 highestinput = ""
 
 screenhistory = []
+accumulatingrewards = []
+statestore = []
+finalisedrewards = []
+finalisedstates = []
+
 
 def printscreen():
 	global screenprinted, name, screenhistory
@@ -37,6 +46,7 @@ def printscreen():
 
 	screenstring += 'Game: ' + pyboy.cartridge_title + '\n'
 	screenstring += 'Screens: ' + str(len(screenhistory)) + '\n'
+	screenstring += 'Scores/States: ' + str(len(accumulatingrewards)) + ' ' + str(len(finalisedrewards)) + ' ' + str(len(statestore)) + ' ' + str(len(finalisedstates)) + '\n'
 	screenstring += 'Up: ' + str(inputs["up"]) + '\n'
 	screenstring += 'Down: ' + str(inputs ["down"] ) + '\n'
 	screenstring += 'Left: ' + str(inputs["left"]) + '\n'
@@ -58,11 +68,11 @@ def printscreen():
 def memory_sweep():
 	global name
 	name = ''.join(str(x) for x in pyboy.memory[0xD47D:0xD486])
-	new_screen()
-
+	new_screen_check()
+	statesandscores()
 
 def generate_inputs():
-	global highestinput
+	global highestinput, statestore
 	inputs.update( {
 		"up": random.uniform(0,1),
 		"down": random.uniform(0,1),
@@ -74,18 +84,36 @@ def generate_inputs():
 		"start": random.uniform(0,1)
 	} )
 	highestinput = max(inputs, key = inputs.get)
+	statestore.append(gatherstate())
 
-def new_screen():
+def new_screen_check():
 	global screenhistory, pyboy
 	screen = pyboy.screen.ndarray #[66:80, 64:72, 0]
 	new = 1
 	for i in screenhistory:
 		#if numpy.array_equal(screen, i):
-		if numpy.average(numpy.subtract(i, screen)) < 5:
-			#print(numpy.average(numpy.subtract(i, screen)))
+		if numpy.average(numpy.subtract(i, screen)) < 3:
 			new = 0
 	if new == 1:
 		screenhistory.append(numpy.copy(screen))
+
+def scorechange():
+	global oldscore
+	i = oldscore
+	newscore = len(screenhistory)
+	oldscore = newscore
+	return newscore - i
+
+def gatherstate():
+	return pyboy.screen.ndarray
+
+def statesandscores():
+	global accumulatingrewards, statestore, finalisedrewards, finalisedstates, accumulate
+	accumulatingrewaeds =[i + scorechange() for i in accumulatingrewards]
+	accumulatingrewards.append(0)
+	if len(accumulatingrewards) > accumulate:
+		finalisedrewards.append(accumulatingrewards.pop(0))
+		finalisedstates.append(statestore.pop(0))
 
 
 for _ in range(500):
