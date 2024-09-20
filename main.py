@@ -109,14 +109,14 @@ def gatherstate():
 
 def statesandscores():
 	global accumulatingrewards, statestore, finalisedrewards, finalisedstates, accumulate
-	accumulatingrewaeds =[i + scorechange() for i in accumulatingrewards]
+	accumulatingrewards = [i + scorechange() for i in accumulatingrewards]
 	accumulatingrewards.append(0)
 	if len(accumulatingrewards) > accumulate:
 		finalisedrewards.append(accumulatingrewards.pop(0))
 		finalisedstates.append(statestore.pop(0))
 
 
-for _ in range(500):
+for _ in range(20):
 	generate_inputs()
 	pyboy.button(highestinput, 3)
 	pyboy.tick(50)
