@@ -80,10 +80,10 @@ class GameInstance:
 			self.finalisedrewards.append(self.accumulatingrewards.pop(0))
 			self.finalisedstates.append(self.statestore.pop(0))
 	
-	def tick(self):
+	def tick(self, num = 1):
 		self.generate_inputs()
 		self.pyboy.button(self.highestinput, 3)
-		self.pyboy.tick(50)
+		self.pyboy.tick(num)
 		self.memory_sweep()
 
 	def stop(self):
