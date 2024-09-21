@@ -166,3 +166,4 @@ cython_debug/
 #my ignores
 #####
 files/
+*.csv
