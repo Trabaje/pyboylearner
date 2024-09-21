@@ -5,9 +5,9 @@ from manager import ConsoleManager
 
 numpy.set_printoptions(threshold=sys.maxsize)
 
-games = ConsoleManager(2)
+games = ConsoleManager(7)
 
-for _ in range(100):
+for _ in range(10):
 	games.tick(50)
 	games.printscreen()
 

@@ -2,7 +2,7 @@ from instance import GameInstance
 
 import numpy
 import sys
-
+import math as maths
 
 class ConsoleManager:
 
@@ -25,7 +25,32 @@ class ConsoleManager:
 	
 	def printscreen(self):
 		screenstring = ''
-		tempscreen = self.games[0].screen(1)
+		count = len(self.games)
+		perrow = maths.ceil(maths.sqrt(count))
+		rows = maths.ceil(count/perrow)
+		t = []
+		dims = []
+		for i in range(rows):
+			r = []
+			for j in range(perrow):
+				k = i * perrow + j
+				if k < count:
+					r.append(self.games[k].screen(perrow))
+					if len(dims) == 0:
+						dims = r[0].shape
+				else:
+					r.append(numpy.zeros(dims, dtype=int))
+					#r.append(self.games[0].screen(perrow))
+			t.append(numpy.concatenate(r, axis = 1))
+		tempscreen = numpy.concatenate(t, axis = 0)
+		
+		#r1 = numpy.concatenate([self.games[0].screen(2), self.games[1].screen(2)], axis = 1)
+		#r2 = numpy.concatenate([self.games[2].screen(2), self.games[3].screen(2)], axis = 1)
+		#tempscreen = numpy.concatenate([r1, r2], axis = 0)
+		
+		#tempscreen = self.games[0].screen(2)
+		#tempscreen = numpy.concatenate([tempscreen, tempscreen], axis=1)
+		#tempscreen = numpy.concatenate([tempscreen, tempscreen], axis = 0)
 		for i in range(tempscreen.shape[0]):
 			for j in range(tempscreen.shape[1]):
 				screenstring += '\033[48;2;' + str(tempscreen[i,j,0]) + ';' +  str(tempscreen[i,j,1]) + ';' +  str(tempscreen[i,j,2]) + 'm '
