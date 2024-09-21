@@ -25,7 +25,7 @@ class ConsoleManager:
 	
 	def printscreen(self):
 		screenstring = ''
-		tempscreen = self.games[0].screen(2)
+		tempscreen = self.games[0].screen(1)
 		for i in range(tempscreen.shape[0]):
 			for j in range(tempscreen.shape[1]):
 				screenstring += '\033[48;2;' + str(tempscreen[i,j,0]) + ';' +  str(tempscreen[i,j,1]) + ';' +  str(tempscreen[i,j,2]) + 'm '
@@ -34,10 +34,12 @@ class ConsoleManager:
 		
 		refresh = ''
 		if self.screenprinted == 1:
+			#print(str(screenstring.count('\n')+1))
 			for _ in range(screenstring.count('\n')+1):
 				refresh += '\033[A'
-	
+				#x=1
+		
 		print(refresh + screenstring)
 		sys.stdout.flush()
-		screenprinted = 1
+		self.screenprinted = 1
 		
