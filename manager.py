@@ -1,6 +1,8 @@
 from instance import GameInstance
 
 import numpy
+import sys
+
 
 class ConsoleManager:
 
