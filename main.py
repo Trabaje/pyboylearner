@@ -7,10 +7,10 @@ numpy.set_printoptions(threshold=sys.maxsize)
 
 games = ConsoleManager(7)
 
-for _ in range(10):
+for _ in range(100):
 	games.tick(50)
 	games.printscreen()
 
 games.stop()
-
-#numpy.savetxt("scores.csv", finalisedrewards, delimiter=",")
+games.exportstates()
+games.exportrewards()

@@ -22,6 +22,20 @@ class ConsoleManager:
 	def stop(self):
 		for i in range(len(self.games)):
 			self.games[i].stop()
+
+	def exportstates(self):
+		t = []
+		for i in range(len(self.games)):
+			t.append(self.games[i].exportstates())
+		numpy.save("files/states.numpy", t)
+
+	def exportrewards(self):
+		t = []
+		for i in range(len(self.games)):
+			t.append(self.games[i].exportrewards())
+		numpy.save("files/rewards.numpy", t)
+
+
 	
 	def printscreen(self):
 		screenstring = ''

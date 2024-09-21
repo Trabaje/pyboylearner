@@ -88,3 +88,9 @@ class GameInstance:
 
 	def stop(self):
 		self.pyboy.stop()
+
+	def exportstates(self):
+		return self.finalisedstates
+
+	def exportrewards(self):
+		return self.finalisedrewards
