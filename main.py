@@ -6,7 +6,7 @@ import random
 
 numpy.set_printoptions(threshold=sys.maxsize)
 
-pyboy = PyBoy('files/rom.gb')
+pyboy = PyBoy('files/rom.gbc')
 pyboy.set_emulation_speed(0)
 
 accumulate = 10
@@ -38,14 +38,15 @@ finalisedstates = []
 def printscreen():
 	global screenprinted, name, screenhistory
 	screenstring = ''
-	for i in range(pyboy.screen.ndarray.shape[0]):
-		for j in range(pyboy.screen.ndarray.shape[1]):
-			screenstring += '\033[48;2;' + str(pyboy.screen.ndarray[i,j,0]) + ';' +  str(pyboy.screen.ndarray[i,j,1]) + ';' +  str(pyboy.screen.ndarray[i,j,2]) + 'm '
+	tempscreen = screen(2)
+	for i in range(tempscreen.shape[0]):
+		for j in range(tempscreen.shape[1]):
+			screenstring += '\033[48;2;' + str(tempscreen[i,j,0]) + ';' +  str(tempscreen[i,j,1]) + ';' +  str(tempscreen[i,j,2]) + 'm '
 			x = 1
 		screenstring += '\033[0m\n'
 
 	screenstring += 'Game: ' + pyboy.cartridge_title + '\n'
-	screenstring += 'Screens: ' + str(len(screenhistory)) + '\n'
+	screenstring += 'Screens: ' + str(accumulatingrewards) + '\n'
 	screenstring += 'Scores/States: ' + str(len(accumulatingrewards)) + ' ' + str(len(finalisedrewards)) + ' ' + str(len(statestore)) + ' ' + str(len(finalisedstates)) + '\n'
 	screenstring += 'Up: ' + str(inputs["up"]) + '\n'
 	screenstring += 'Down: ' + str(inputs ["down"] ) + '\n'
@@ -64,6 +65,10 @@ def printscreen():
 	print(refresh + screenstring)
 	sys.stdout.flush()
 	screenprinted = 1
+
+def screen(step = 1):
+	return pyboy.screen.ndarray[::step, ::step]
+
 
 def memory_sweep():
 	global name
@@ -88,14 +93,13 @@ def generate_inputs():
 
 def new_screen_check():
 	global screenhistory, pyboy
-	screen = pyboy.screen.ndarray #[66:80, 64:72, 0]
+	scr = screen()
 	new = 1
 	for i in screenhistory:
-		#if numpy.array_equal(screen, i):
-		if numpy.average(numpy.subtract(i, screen)) < 3:
+		if numpy.average(numpy.subtract(i, scr)) < 3:
 			new = 0
 	if new == 1:
-		screenhistory.append(numpy.copy(screen))
+		screenhistory.append(numpy.copy(scr))
 
 def scorechange():
 	global oldscore
@@ -105,21 +109,24 @@ def scorechange():
 	return newscore - i
 
 def gatherstate():
-	return pyboy.screen.ndarray
+	return screen()
 
 def statesandscores():
 	global accumulatingrewards, statestore, finalisedrewards, finalisedstates, accumulate
-	accumulatingrewards = [i + scorechange() for i in accumulatingrewards]
+	delta = scorechange()
+	accumulatingrewards = [i + delta for i in accumulatingrewards]
 	accumulatingrewards.append(0)
 	if len(accumulatingrewards) > accumulate:
 		finalisedrewards.append(accumulatingrewards.pop(0))
 		finalisedstates.append(statestore.pop(0))
 
 
-for _ in range(20):
+for _ in range(50):
 	generate_inputs()
 	pyboy.button(highestinput, 3)
 	pyboy.tick(50)
 	memory_sweep()
 	printscreen()
 pyboy.stop()
+
+numpy.savetxt("scores.csv", finalisedrewards, delimiter=",")
